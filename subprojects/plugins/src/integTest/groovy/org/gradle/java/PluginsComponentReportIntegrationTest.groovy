@@ -19,7 +19,7 @@ import org.gradle.api.reporting.components.AbstractComponentReportIntegrationTes
 
 class PluginsComponentReportIntegrationTest extends AbstractComponentReportIntegrationTest {
 
-    def "shows details of legacy Java project"() {
+    def "does not show legacy Java projects if software model isn't used"() {
         given:
         buildFile << """
 plugins {
@@ -32,32 +32,6 @@ plugins {
         then:
         outputMatches """
 No components defined for this project.
-
-Additional source sets
-----------------------
-Java source 'main:java'
-    srcDir: src/main/java
-    limit to: **/*.java
-Java source 'test:java'
-    srcDir: src/test/java
-    limit to: **/*.java
-JVM resources 'main:resources'
-    srcDir: src/main/resources
-JVM resources 'test:resources'
-    srcDir: src/test/resources
-
-Additional binaries
--------------------
-Classes 'main'
-    target platform: $currentJava
-    tool chain: $currentJdk
-    classes dir: build/classes/java/main
-    resources dir: build/resources/main
-Classes 'test'
-    target platform: $currentJava
-    tool chain: $currentJdk
-    classes dir: build/classes/java/test
-    resources dir: build/resources/test
 """
     }
 
@@ -110,64 +84,6 @@ JVM resources 'test:resources'
 
 Additional binaries
 -------------------
-Classes 'main'
-    target platform: $currentJava
-    tool chain: $currentJdk
-    classes dir: build/classes/java/main
-    resources dir: build/resources/main
-Classes 'test'
-    target platform: $currentJava
-    tool chain: $currentJdk
-    classes dir: build/classes/java/test
-    resources dir: build/resources/test
-"""
-    }
-
-    def "shows details of legacy Java project with custom source sets"() {
-        given:
-        buildFile << """
-plugins {
-    id 'java'
-}
-sourceSets {
-    custom {
-        java.srcDirs = ['src/custom', 'src/custom2']
-    }
-}
-"""
-        when:
-        succeeds "components"
-
-        then:
-        outputMatches """
-No components defined for this project.
-
-Additional source sets
-----------------------
-Java source 'custom:java'
-    srcDir: src/custom
-    srcDir: src/custom2
-    limit to: **/*.java
-Java source 'main:java'
-    srcDir: src/main/java
-    limit to: **/*.java
-Java source 'test:java'
-    srcDir: src/test/java
-    limit to: **/*.java
-JVM resources 'custom:resources'
-    srcDir: src/custom/resources
-JVM resources 'main:resources'
-    srcDir: src/main/resources
-JVM resources 'test:resources'
-    srcDir: src/test/resources
-
-Additional binaries
--------------------
-Classes 'custom'
-    target platform: $currentJava
-    tool chain: $currentJdk
-    classes dir: build/classes/java/custom
-    resources dir: build/resources/custom
 Classes 'main'
     target platform: $currentJava
     tool chain: $currentJdk
