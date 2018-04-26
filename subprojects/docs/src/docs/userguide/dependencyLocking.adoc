@@ -1,0 +1,144 @@
+// Copyright 2017 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[dependency_locking]]
+== Dependency locking
+
+=== Why dependency locking?
+
+If your project uses dynamic versions anywhere, the resolved set of dependencies varies through time.
+It is sometimes desirable to freeze a given configuration so that it will always resolve to the same modules and versions.
+
+This is where _dependency locking_ comes into play.
+
+Locking must be enabled on a per configuration basis.
+Once one or more configurations have locking activated, you need to create the initial lock state.
+
+During a build that resolves the configuration(s), you tell Gradle to persist the lock state(s).
+It will then be used to validate that the resolution results did not change.
+This will effectively result in a configuration where any change in dependencies resolution fails the build, prompting you to take action.
+
+It is expected to preserve the lock state in version control, so that it is shared alongside the other build elements.
+
+[NOTE]
+====
+Dependency locking makes sense only with <<sub:declaring_dependency_with_dynamic_version,_dynamic_ versions>>.
+It will have no impact on <<sub:declaring_dependency_with_changing_version,_changing_ versions>>.
+Because for the latter, the _GAV_ remains the same, it is the content - metadata and/or artifact - that changes.
+====
+
+=== Enabling locking on configurations
+
+Locking of a configuration happens through the `ResolutionStrategy`:
+
+++++
+<sample id="locking-one" dir="userguide/dependencyManagement/dependencyLocking/lockingSingleConfiguration" title="Locking a specific configuration">
+    <sourcefile file="build.gradle" snippet="locking-one"/>
+</sample>
+++++
+
+Or the following, as a way to lock all configurations:
+
+++++
+<sample id="locking-all" dir="userguide/dependencyManagement/dependencyLocking/lockingAllConfigurations" title="Locking all configurations">
+    <sourcefile file="build.gradle" snippet="locking-all"/>
+</sample>
+++++
+
+[NOTE]
+====
+Only configurations that can be resolved will have a lock file attached to them. Applying locking on non resolvable-configurations is simply a no-op.
+====
+
+=== Lock file location and format
+
+Lockfiles will be located in the folder `gradle/dependency-locks` inside the project or subproject directory.
+Each file is named by the configuration it locks and has the `lockfile` extension.
+
+The content of the file is a module notation per line, with a header giving some context.
+Module notations are ordered alphabetically, to ease diffs.
+
+++++
+<sample id="locking-all" dir="userguide/dependencyManagement/dependencyLocking/lockingSingleConfiguration" title="Lockfile content">
+    <sourcefile file="gradle/compileClasspath.lockfile"/>
+</sample>
+++++
+
+=== Running a build with a lockfile present
+
+The moment a build needs to resolve a configuration that has locking enabled and it finds a matching lockfile,
+it will use it to verify that the given configuration still resolves the same versions.
+The validation is as follows:
+
+* Existing entries in the lockfile must be matched in the build
+** A version mismatch or missing resolved module causes a build failure
+* Resolution result must not contain extra dependencies compared to the lock file content
+
+=== Generating and updating lockfiles
+
+In order to generate or update a lockfile, you specify the `--write-locks` command line argument in addition to the normal tasks that would trigger configurations to be resolved.
+This will cause the creation of a lockfile for each resolved configuration in that build execution.
+Note that if a lockfile existed previously, it is overwritten.
+
+==== Lock all configurations in one build execution
+
+When locking multiple configurations, you may want to lock them all at once, during a single build execution.
+
+For this, you have two options:
+
+* Run `./gradlew dependencies --write-locks`.
+This will effectively lock all resolvable configurations that have locking enabled.
+Note that in a multi project setup, `dependencies` only is executed on _one_ project, the root one in this case.
+* Declare a custom task that will resolve all configurations
+++++
+<sample id="locking-all" dir="userguide/dependencyManagement/dependencyLocking/lockingAllConfigurations" title="Resolving all configurations">
+    <sourcefile file="build.gradle" snippet="resolve-all"/>
+</sample>
+++++
+
+=== Controlled lock file update
+
+In order to update only specific modules of a configuration, you can use the `--update-locks` command line flag.
+It takes a comma (`,`) separated list of module notations.
+In this mode, the existing lock file is still used as input to resolution, filtering out the modules targeted by the update.
+Note however that the resolution may cause other module versions to update, as dictated by the Gradle resolution rules.
+
+----
+❯ ./gradlew classes --update-locks org:foo,org:bar
+----
+
+Wildcards, indicated with `*`, can be used in the group or module name. They can be the only character or appear at the end of the group or module respectively.
+The following wildcard notations are valid:
+
+* `org*:foo`
+* `org:*`
+* `*:bar`
+* `org*:bar*`
+
+=== Deleting a lockfile
+
+Simply remove the file matching the configurations where you no longer want locking.
+
+=== Locking limitations
+
+It is currently not possible to lock the `classpath` configuration used for build plugins.
+
+=== Nebula locking plugin
+
+This feature is inspired by the https://github.com/nebula-plugins/gradle-dependency-lock-plugin[Nebula Gradle dependency lock plugin].
+It is effectively an adaptation of the features of that plugin that leverage the recent developments around dependency management in Gradle.
+
+There are differences though between the plugin features and what is integrated into Gradle core.
+
+The main difference is that the scope of locking in Gradle is per configuration, and thus implicitly per project.
