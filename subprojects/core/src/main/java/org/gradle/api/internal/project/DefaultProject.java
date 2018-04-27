@@ -190,13 +190,14 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     private ArtifactHandler artifactHandler;
 
-    private ListenerBroadcast<ProjectEvaluationListener> evaluationListener = new ListenerBroadcast<ProjectEvaluationListener>(ProjectEvaluationListener.class);
+    private ListenerBroadcast<ProjectEvaluationListener> evaluationListener = newProjectEvaluationListenerBroadcast();
 
     private ExtensibleDynamicObject extensibleDynamicObject;
 
     private String description;
 
     private final Path path;
+
     private Path identityPath;
 
     public DefaultProject(String name,
@@ -287,6 +288,10 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         FileOperations fileOperations(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(FileOperations.class);
         }
+    }
+
+    private ListenerBroadcast<ProjectEvaluationListener> newProjectEvaluationListenerBroadcast() {
+        return new ListenerBroadcast<ProjectEvaluationListener>(ProjectEvaluationListener.class);
     }
 
     private void populateModelRegistry(ModelRegistry modelRegistry) {
@@ -1354,5 +1359,20 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @Override
     public void dependencyLocking(Action<? super DependencyLockingHandler> configuration) {
         configuration.execute(getDependencyLocking());
+    }
+
+    @Override
+    public ProjectEvaluationListener stepEvaluationListener(ProjectEvaluationListener listener, Action<ProjectEvaluationListener> step) {
+        ListenerBroadcast<ProjectEvaluationListener> original = this.evaluationListener;
+        ListenerBroadcast<ProjectEvaluationListener> nextBatch = newProjectEvaluationListenerBroadcast();
+        this.evaluationListener = nextBatch;
+        try {
+            step.execute(listener);
+        } finally {
+            this.evaluationListener = original;
+        }
+        return nextBatch.isEmpty()
+            ? null
+            : nextBatch.getSource();
     }
 }
