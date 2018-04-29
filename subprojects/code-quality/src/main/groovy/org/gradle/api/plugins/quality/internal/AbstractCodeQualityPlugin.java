@@ -137,7 +137,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
     }
 
     private void configureTaskRule() {
-        project.getTasks().withType(getCastedTaskType(), new Action<Task>() {
+        project.getTasks().configureEachLater(getCastedTaskType(), new Action<Task>() {
             @Override
             public void execute(Task task) {
                 String prunedName = task.getName().replaceFirst(getTaskBaseName(), "");
@@ -165,9 +165,13 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
     private void configureForSourceSets(SourceSetContainer sourceSets) {
         sourceSets.all(new Action<SourceSet>() {
             @Override
-            public void execute(SourceSet sourceSet) {
-                Task task = project.getTasks().create(sourceSet.getTaskName(getTaskBaseName(), null), getCastedTaskType());
-                configureForSourceSet(sourceSet, (T)task);
+            public void execute(final SourceSet sourceSet) {
+                project.getTasks().createLater(sourceSet.getTaskName(getTaskBaseName(), null), getCastedTaskType(), new Action<Task>() {
+                    @Override
+                    public void execute(Task task) {
+                        configureForSourceSet(sourceSet, (T)task);
+                    }
+                });
             }
         });
     }
