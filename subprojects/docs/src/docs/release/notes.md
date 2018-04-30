@@ -40,6 +40,11 @@ The Signing plugin now supports signing all artifacts of a publication, e.g. whe
 
 The [Ivy Publishing Plugin](userguide/publishing_ivy.html) now writes dependency exclude rules defined on a configuration (instead of on an individual dependency) into the generated Ivy module descriptor; the [Maven Publishing Plugin](userguide/publishing_maven.html) now repeats them for each dependency in the generated POM.
 
+### Locking of dynamic dependencies
+
+Gradle core now provides a mechanism for [locking dynamic versions](userguide/dependency_locking.html).
+It enables builds to become reproducible even when declaring dependencies using version ranges.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
