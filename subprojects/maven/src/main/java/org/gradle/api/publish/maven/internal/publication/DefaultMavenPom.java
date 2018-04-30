@@ -37,6 +37,7 @@ import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInterna
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.DeprecationLogger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,7 +76,14 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
         return xmlAction;
     }
 
+    @Override
     public String getPackaging() {
+        DeprecationLogger.nagUserOfDeprecated("Reading the packaging from a publication's pom object", "If necessary, please use a local variable instead");
+        return determinePackaging();
+    }
+
+    @Override
+    public String determinePackaging() {
         if (packaging == null) {
             return mavenPublication.determinePackagingFromArtifacts();
         }

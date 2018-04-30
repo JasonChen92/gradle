@@ -360,4 +360,35 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
         failure.assertHasCause("Failed to publish publication 'maven' to repository 'maven'")
         failure.assertHasCause("Invalid publication 'maven': supplied version does not match POM file (cannot edit version directly in the POM file).")
     }
+
+    def "emits deprecation warning when reading pom packaging"() {
+        given:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'maven-publish'
+            apply plugin: 'java'
+
+            group = 'group'
+            version = '1.0'
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        def tmp = pom.packaging
+                    }
+                }
+            }
+        """
+
+        when:
+        executer.expectDeprecationWarning()
+        succeeds 'publish'
+
+        then:
+        outputContains "Reading the packaging from a publication's pom object has been deprecated"
+        outputContains "If necessary, please use a local variable instead."
+    }
 }

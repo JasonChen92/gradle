@@ -40,7 +40,11 @@ public interface MavenPom {
 
     /**
      * Returns the packaging for the publication represented by this POM.
+     *
+     * <p>While setting the packaging is still supported, reading it is deprecated.
+     * If necessary, please assign it to a variable instead of reading it from here.
      */
+    @Deprecated
     String getPackaging();
 
     /**

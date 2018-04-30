@@ -78,7 +78,7 @@ public class MavenPomFileGenerator {
     }
 
     public MavenPomFileGenerator configureFrom(MavenPomInternal pom) {
-        model.setPackaging(pom.getPackaging());
+        model.setPackaging(pom.determinePackaging());
         model.setName(pom.getName());
         model.setDescription(pom.getDescription());
         model.setUrl(pom.getUrl());

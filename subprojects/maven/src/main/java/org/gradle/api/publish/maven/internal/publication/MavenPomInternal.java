@@ -28,6 +28,8 @@ import java.util.Set;
 
 public interface MavenPomInternal extends MavenPom {
 
+    String determinePackaging();
+
     String getName();
 
     String getDescription();

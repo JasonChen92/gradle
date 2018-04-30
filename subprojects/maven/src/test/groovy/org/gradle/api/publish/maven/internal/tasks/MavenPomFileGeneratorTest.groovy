@@ -70,7 +70,7 @@ class MavenPomFileGeneratorTest extends Specification {
     def "does not require metadata to be configured"() {
         given:
         def mavenPom = Mock(MavenPomInternal) {
-            getPackaging() >> "pom"
+            determinePackaging() >> "pom"
             getLicenses() >> []
             getDevelopers() >> []
             getContributors() >> []
@@ -89,7 +89,7 @@ class MavenPomFileGeneratorTest extends Specification {
     def "writes metadata from configuration"() {
         given:
         def mavenPom = Mock(MavenPomInternal) {
-            getPackaging() >> "pom"
+            determinePackaging() >> "pom"
             getName() >> "my name"
             getDescription() >> "my description"
             getUrl() >> "http://example.org"

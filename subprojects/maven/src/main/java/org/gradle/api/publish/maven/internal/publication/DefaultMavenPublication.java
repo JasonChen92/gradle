@@ -415,7 +415,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             }
         });
         Set<MavenArtifact> artifactsToBePublished = CompositeDomainObjectSet.create(MavenArtifact.class, mainArtifacts, metadataArtifacts, existingDerivedArtifacts);
-        return new MavenNormalizedPublication(name, pom.getPackaging(), getPomArtifact(), projectIdentity, artifactsToBePublished, determineMainArtifact());
+        return new MavenNormalizedPublication(name, pom.determinePackaging(), getPomArtifact(), projectIdentity, artifactsToBePublished, determineMainArtifact());
     }
 
     private MavenArtifact getPomArtifact() {
@@ -444,7 +444,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         }
         for (MavenArtifact unclassifiedArtifact : unclassifiedArtifacts) {
             // With multiple unclassified artifacts, choose the one with extension matching pom packaging
-            String packaging = pom.getPackaging();
+            String packaging = pom.determinePackaging();
             if (unclassifiedArtifact.getExtension().equals(packaging)) {
                 return unclassifiedArtifact;
             }

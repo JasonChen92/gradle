@@ -112,7 +112,7 @@ class DefaultMavenPublicationTest extends Specification {
         publication.artifact "artifact"
 
         then:
-        publication.pom.packaging == "ext"
+        publication.pom.determinePackaging() == "ext"
     }
 
     def "packaging determines main artifact"() {
@@ -132,7 +132,7 @@ class DefaultMavenPublicationTest extends Specification {
 
         then:
         publication.asNormalisedPublication().mainArtifact.extension == "ext"
-        publication.pom.packaging == "ext"
+        publication.pom.determinePackaging() == "ext"
     }
 
     def 'if there is only one artifact it is the main artifact even if packaging is different'() {
@@ -148,7 +148,7 @@ class DefaultMavenPublicationTest extends Specification {
 
         then:
         publication.asNormalisedPublication().mainArtifact.extension == "ext"
-        publication.pom.packaging == "otherext"
+        publication.pom.determinePackaging() == "otherext"
     }
 
     def "empty publishableFiles and artifacts when no component is added"() {
